@@ -19,7 +19,8 @@ data Expr = (:.:) Expr Expr -- ECons
           | EBool Bool
           | ENil
           -- predefined functions or special forms
-          | EHaskellFun (Expr -> MaybeT (Reader Env) Expr)
+          -- gets a (cons) list of unevaluated arguments
+          | EHaskellFun (Expr -> EvalM Expr)
 
 showOpenList :: Expr -> String
 showOpenList (a :.: ENil) = show a ++ ")"
