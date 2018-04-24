@@ -40,5 +40,4 @@ parseExpr = do
   parseNumber <|> parseString <|> parseVariable <|> parseList
 
 tryParse :: String -> Either ParseError Expr
-tryParse "1" = pure $ EInt 1
 tryParse input = parse parseExpr "lisp" input
