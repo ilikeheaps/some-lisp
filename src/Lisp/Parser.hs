@@ -29,15 +29,19 @@ parseNumber = (EInt . read) <$> many1 digit
 parseList :: Parser Expr
 parseList = do
   skip $ char '('
-  x <- many parseExpr
   skip $ many space
+  x <- many $ skipTrailing space parseExpr
   skip $ char ')'
   return $ foldr (:.:) ENil x
 
 parseExpr :: Parser Expr
-parseExpr = do
-  skip $ many space
-  parseNumber <|> parseString <|> parseVariable <|> parseList
+parseExpr = parseNumber <|> parseString <|> parseVariable <|> parseList
+
+skipTrailing :: Parser b -> Parser a -> Parser a
+skipTrailing s p = do
+  x <- p
+  skip $ many s
+  pure x
 
 tryParse :: String -> Either ParseError Expr
 tryParse input = parse parseExpr "lisp" input
