@@ -2,7 +2,7 @@ module Lisp.Eval ( eval
                  , evalList) where
 
 import Control.Monad.Trans.Reader
-import Control.Monad.Trans.Maybe
+import Control.Monad.Trans.Except
 import Control.Monad.Trans.Class
 import Control.Monad
 
@@ -22,12 +22,17 @@ eval (function :.: argList) = do
     EHaskellFun f -> f argList
     (EVar "lambda" :.: argNames :.: expr :.: ENil) -> do
       argVals <- evalList argList
-      MaybeT . (local $ bindVars argNames argVals) . runMaybeT
+      ExceptT . (local $ bindVars argNames argVals) . runExceptT
         $ eval expr
-    _ -> mzero -- invalid function
-eval (EVar v) = lift ask >>= (liftMaybe . lookup v)
+    _ -> throwE $ EvalExc "invalid function"
+eval (EVar v) = do
+  env <- lift ask
+  maybe
+    (throwE . EvalExc $ "variable not found: "++show v)
+    (pure)
+    (lookup v env)
 eval (EInt n) = pure $ EInt n
 eval (EStr s) = pure $ EStr s
 eval (EBool b) = pure $ EBool b
 eval ENil = pure $ ENil
-eval (EHaskellFun _) = mzero -- impossible syntax (there should be no way to write predefined functions)
+eval (EHaskellFun _) = throwE $ EvalExc "shit went wrong" -- impossible syntax (there should be no way to write predefined functions)

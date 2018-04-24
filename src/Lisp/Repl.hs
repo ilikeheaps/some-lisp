@@ -3,6 +3,8 @@ module Lisp.Repl where
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Maybe
+import Control.Monad.Trans.Except
+import Data.Functor.Identity
 
 import MonadStuff
 import Lisp.Types
@@ -19,23 +21,12 @@ repl = do
     _ -> evalStr str >> repl
     where evalStr :: String -> ReaderT Env IO ()
           evalStr str = do
-            either -- mapMaybeT lift readExpr
-              (\e -> liftIO . putStrLn $ show e)
-              (\expr -> do
-                  mval <- readerT . runMaybeT $ eval expr
-                  maybe
-                    (liftIO $ putStrLn "Runtime error")
-                    (\val -> liftIO $ putStrLn $ show val)
-                    mval)
-              (tryParse str)
-            
-    {-
-    _ -> do case parse str of
-              Nothing -> liftIO $ putStrLn "Parse failed :c"
-              Just expr -> do
-                val <- mapMaybeT readerT $ eval expr
-                liftIO $ putStrLn $ show val
-            repl
--}
+            res <- readerT . runExceptT $ do
+              expr <- withExceptT Parsing . ExceptT . pure $ tryParse str
+              withExceptT Runtime $ eval expr
+            either
+              (\err -> liftIO . putStrLn $ show err)
+              (\value -> liftIO . putStrLn $ show value)
+              (res)
 
   

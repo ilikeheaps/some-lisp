@@ -1,8 +1,9 @@
 -- common types and functions
 module Lisp.Types where
 
-import Control.Monad.Trans.Maybe
+import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
+import Text.Parsec
 
 type Var = String
   -- deriving (Eq, Show)
@@ -22,6 +23,14 @@ data Expr = (:.:) Expr Expr -- ECons
           -- gets a (cons) list of unevaluated arguments
           | EHaskellFun (Expr -> EvalM Expr)
 
+data EvalError = EvalExc String
+data LispError = Runtime EvalError | Parsing ParseError
+-- type LispError = EvalError :+: ParseError
+
+instance Show LispError where
+  show (Runtime (EvalExc s)) = "Runtime error: "++s
+  show (Parsing pe) = "Parse error: "++show pe
+
 showOpenList :: Expr -> String
 showOpenList (a :.: ENil) = show a ++ ")"
 showOpenList (a :.: as) = show a ++" "++ showOpenList as
@@ -39,7 +48,8 @@ instance Show Expr where
 
 type Env = [(Var, Expr)]
 
-type EvalM a = MaybeT (Reader Env) a
+type LispM e a = ExceptT e (Reader Env) a
+type EvalM a = LispM EvalError a
 
 -- this will map over any list, also kinda-list (e.g. (1 2 . 3) )
 mapConsM :: Monad m => (Expr -> m Expr) -> Expr -> m Expr
