@@ -36,7 +36,7 @@ parseList = do
 
 parseExpr :: Parser Expr
 parseExpr = do
-  skip (many space)
+  skip $ many space
   parseNumber <|> parseString <|> parseVariable <|> parseList
 
 tryParse :: String -> Either ParseError Expr
