@@ -27,9 +27,8 @@ eval (function :.: argList) = do
     _ -> throwE $ EvalExc "invalid function"
 eval (EVar v) = do
   env <- lift ask
-  maybe
-    (throwE . EvalExc $ "variable not found: "++show v)
-    (pure)
+  maybeFail
+    (EvalExc $ "variable not found: "++show v)
     (lookup v env)
 eval (EInt n) = pure $ EInt n
 eval (EStr s) = pure $ EStr s
