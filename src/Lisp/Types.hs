@@ -64,3 +64,19 @@ mapConsM f expr = f expr
 mapCons :: (Expr -> Expr) -> Expr -> Expr
 mapCons f (e1 :.: e2) = f e1 :.: mapCons f e2
 mapCons f expr = f expr
+
+mapTree :: (Expr -> Expr) -> Expr -> Expr
+--mapTree f expr = mapCons (mapTree f) expr
+
+mapTree f (e1 :.: e2) = mapTree f e1 :.: mapTree f e2
+mapTree f expr = f expr
+
+mapTreeM :: Monad m => (Expr -> m Expr) -> Expr -> m Expr
+mapTreeM f (e1 :.: e2) =
+  (:.:) <$> mapTreeM f e1 <*> mapTreeM f e2
+mapTreeM f expr = f expr
+
+consToList :: Expr -> Maybe [Expr]
+consToList (e1 :.: e2) = (:) <$> Just e1 <*> consToList e2
+consToList ENil = Just []
+consToList _ = Nothing

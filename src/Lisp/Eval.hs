@@ -13,9 +13,27 @@ import MonadStuff
 evalList :: Expr -> EvalM Expr
 evalList expr = mapConsM eval expr
 
+keywords :: [Var]
+keywords = ["lambda"]
+
 eval :: Expr -> EvalM Expr
 -- TODO runtime check if lambda syntax is correct
-eval f@(EVar "lambda" :.: _args :.: _body :.: ENil) = pure f
+eval (EVar "lambda" :.: args :.: body :.: ENil) = do
+  -- this is not enough:
+  -- consider (lambda (x) (lambda (t) expr))
+  -- !!! t is not considered a locally bound variable in expr
+  let foo :: [Var] -> Expr -> EvalM Expr
+      foo exc v@(EVar x) = if x `elem` exc then pure v
+                           else eval v
+      foo _ constant = pure constant
+  argLs <- maybeFail (EvalExc "lambda: bad syntax") $ consToList args
+  argNames <- mapM (\e -> case e of
+                       EVar x -> pure x
+                       _ -> throwE $ EvalExc "lambda: bad syntax") argLs
+  bodyBound <- mapTreeM (foo $ keywords++argNames) body
+  pure $ EVar "lambda" :.: args :.: bodyBound :.: ENil
+eval (EVar "lambda" :.: _) =
+  throwE $ EvalExc "lambda: bad syntax, expected: (lambda (<var>...) <expr>)"
 eval (function :.: argList) = do
   fun <- eval function
   case fun of
@@ -34,4 +52,5 @@ eval (EInt n) = pure $ EInt n
 eval (EStr s) = pure $ EStr s
 eval (EBool b) = pure $ EBool b
 eval ENil = pure $ ENil
-eval (EHaskellFun _) = throwE $ EvalExc "shit went wrong" -- impossible syntax (there should be no way to write predefined functions)
+eval f@(EHaskellFun _) = pure f
+  -- throwE $ EvalExc "shit went wrong" -- impossible syntax (there should be no way to write predefined functions)
