@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Lisp.Eval ( eval
                  , evalList) where
 
@@ -16,22 +18,47 @@ evalList expr = mapConsM eval expr
 keywords :: [Var]
 keywords = ["lambda"]
 
+extractVars :: Expr -> Maybe [String]
+extractVars e = do
+  argLs <- consToList e
+  mapM (\(EVar x) -> Just x) argLs
+
+mapFreeVars :: (Expr -> Expr) -> Expr -> Expr
+mapFreeVars f e = go [] e
+  where
+    go :: [String] -> Expr -> Expr
+    go bound (EVar "lambda" :.: args :.: body :.: ENil) =
+      let (Just argLs) = extractVars args
+      in EVar "lambda" :.: args :.: go (bound ++ argLs) body :.: ENil
+    go bound v@(EVar x) = if x `elem` bound then v else f v
+    go bound c@(_ :.: _) = mapCons (go bound) c
+    go _ s@(EStr _) = s
+    go _ n@(EInt _) = n
+    go _ b@(EBool _) = b
+    go _ h@(EHaskellFun _) = h
+    go _ ENil = ENil
+
+-- couldn't the restraint be just =Applicative m= ?
+mapFreeVarsM :: forall m . Monad m => (Expr -> m Expr) -> Expr -> m Expr
+mapFreeVarsM f e = go [] e
+  where
+    go :: [String] -> Expr -> m Expr
+    go bound (EVar "lambda" :.: args :.: body :.: ENil) = do
+      let (Just argLs) = extractVars args
+      body' <- go (bound ++ argLs) body
+      pure $ EVar "lambda" :.: args :.: body' :.: ENil
+    go bound v@(EVar x) = if x `elem` bound then pure v else f v
+    go bound c@(_ :.: _) = mapConsM (go bound) c
+    go _ s@(EStr _) = pure s
+    go _ n@(EInt _) = pure n
+    go _ b@(EBool _) = pure b
+    go _ h@(EHaskellFun _) = pure h
+    go _ ENil = pure ENil
+
 eval :: Expr -> EvalM Expr
 -- TODO runtime check if lambda syntax is correct
-eval (EVar "lambda" :.: args :.: body :.: ENil) = do
-  -- this is not enough:
-  -- consider (lambda (x) (lambda (t) expr))
-  -- !!! t is not considered a locally bound variable in expr
-  let foo :: [Var] -> Expr -> EvalM Expr
-      foo exc v@(EVar x) = if x `elem` exc then pure v
-                           else eval v
-      foo _ constant = pure constant
-  argLs <- maybeFail (EvalExc "lambda: bad syntax") $ consToList args
-  argNames <- mapM (\e -> case e of
-                       EVar x -> pure x
-                       _ -> throwE $ EvalExc "lambda: bad syntax") argLs
-  bodyBound <- mapTreeM (foo $ keywords++argNames) body
-  pure $ EVar "lambda" :.: args :.: bodyBound :.: ENil
+eval l@(EVar "lambda" :.: _args :.: _body :.: ENil) =
+  mapFreeVarsM eval l
 eval (EVar "lambda" :.: _) =
   throwE $ EvalExc "lambda: bad syntax, expected: (lambda (<var>...) <expr>)"
 eval (function :.: argList) = do
