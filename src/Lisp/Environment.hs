@@ -10,7 +10,7 @@ bindName s = bindVar s
 bindFun :: String -> (Expr -> EvalM Expr) -> Env -> Env
 bindFun name body = bindName name (EHaskellFun body)
 
--- TODO the bound function appers to be lazy. Is that okay?
+-- the bound function will be strict
 bindPureFun :: String -> (Expr -> Expr) -> Env -> Env
 bindPureFun name fun = bindName name (EHaskellFun action)
   where action args = do
