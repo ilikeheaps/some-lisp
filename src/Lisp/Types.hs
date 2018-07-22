@@ -23,6 +23,16 @@ data Expr = (:.:) Expr Expr -- ECons
           -- gets a (cons) list of unevaluated arguments
           | EHaskellFun (Expr -> EvalM Expr)
 
+-- TODO Maybe should make some MaybeEq class to reflect that you can't compare Haskell functions (and comparing lambdas doesn't make much sense as well but at least it's possible)
+instance Eq Expr where
+  EStr s1 == EStr s2 = s1 == s2
+  EVar v1 == EVar v2 = v1 == v2
+  EInt i1 == EInt i2 = i1 == i2
+  EBool b1 == EBool b2 = b1 == b2
+  ENil == ENil = True
+  (e1Left :.: e1Right) == (e2Left :.: e2Right) = e1Left == e2Left && e1Right == e2Right
+  _ == _ = False
+
 data EvalError = EvalExc String
 data LispError = Runtime EvalError | Parsing ParseError
 -- type LispError = EvalError :+: ParseError

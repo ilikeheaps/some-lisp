@@ -15,6 +15,7 @@ defaultEnv = bindPureFun "+" (\(EInt a :.: EInt b :.: ENil) ->  EInt $ a + b)
              . bindPureFun "<" (\(EInt a :.: EInt b :.: ENil) ->  EBool $ a < b)
              . bindPureFun "=" (\(EInt a :.: EInt b :.: ENil) ->  EBool $ a == b)
              . bindPureFun "<=" (\(EInt a :.: EInt b :.: ENil) ->  EBool $ a <= b)
+             . bindPureFun "=:=" (\(e1 :.: e2 :.: ENil) -> EBool $ e1 == e2)
              $ emptyEnv
 
 main :: IO ()
