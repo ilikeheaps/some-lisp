@@ -17,6 +17,13 @@ parseString = do
   skip $ char '"'
   return $ EStr x
 
+parseBool :: Parser Expr
+parseBool = parseTrue <|> parseFalse
+  where parseTrue :: Parser Expr
+        parseTrue = string "true" >> pure (EBool True)
+        parseFalse :: Parser Expr
+        parseFalse = string "false" >> pure (EBool False)
+
 parseVariable :: Parser Expr
 parseVariable = do
   first <- letter <|> symbol
@@ -35,7 +42,7 @@ parseList = do
   return $ foldr (:.:) ENil x
 
 parseExpr :: Parser Expr
-parseExpr = parseNumber <|> parseString <|> parseVariable <|> parseList
+parseExpr = parseNumber <|> parseString <|> parseBool <|> parseVariable <|> parseList
 
 skipTrailing :: Parser b -> Parser a -> Parser a
 skipTrailing s p = do
