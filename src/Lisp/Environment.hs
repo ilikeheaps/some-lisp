@@ -15,27 +15,26 @@ bindName s = bindVar s
 bindFun :: String -> (Expr -> EvalM Expr) -> Env -> Env
 bindFun name body = bindName name (EHaskellFun body)
 
+withEvalArgs :: (Expr -> EvalM a) -> Expr -> EvalM a
+withEvalArgs action args = do
+  values <- evalList args
+  action values
+
 bindPureFun :: String -> (Expr -> Expr) -> Env -> Env
-bindPureFun name fun = bindName name (EHaskellFun action)
-  where action args = do
-          values <- evalList args
-          pure $ fun values
+bindPureFun name fun =
+  bindFun name (withEvalArgs (pure . fun))
 
 bindFailFun :: String -> String -> (Expr -> Maybe Expr) -> Env -> Env
-bindFailFun name errMsg fun = bindName name (EHaskellFun action)
-  where action args = do
-          values <- evalList args
-          maybeFail (EvalExc errMsg) $ fun values
+bindFailFun name errMsg fun =
+  bindFun name (withEvalArgs (maybeFail (EvalExc errMsg) . fun))
 
 bindExceptFun :: String -> (forall m . Monad m => Expr -> ExceptT EvalError m Expr) -> Env -> Env
-bindExceptFun name fun = bindName name (EHaskellFun action)
-  where action :: Expr -> EvalM Expr
-        action args = do
-          values <- evalList args
-          fun values
+bindExceptFun name fun =
+  bindFun name (withEvalArgs fun)
 
 bindPureForm :: String -> (Expr -> Expr) -> Env -> Env
-bindPureForm name fun = bindName name (EHaskellFun (pure . fun))
+bindPureForm name fun =
+  bindFun name (pure . fun)
 
 emptyEnv :: Env
 emptyEnv = []
