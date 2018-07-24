@@ -1,6 +1,4 @@
 import Control.Monad.Trans.Reader
-import Control.Monad.Trans.Maybe
-import System.IO.Unsafe
 import Control.Monad (when)
 
 import Lisp.Types
