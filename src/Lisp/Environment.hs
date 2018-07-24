@@ -18,8 +18,8 @@ bindPureFun name fun = bindName name (EHaskellFun action)
           values <- evalList args
           pure $ fun values
 
-bindLazyFun :: String -> (Expr -> Expr) -> Env -> Env
-bindLazyFun name fun = bindName name (EHaskellFun (pure . fun))
+bindPureForm :: String -> (Expr -> Expr) -> Env -> Env
+bindPureForm name fun = bindName name (EHaskellFun (pure . fun))
 
 emptyEnv :: Env
 emptyEnv = []
