@@ -62,6 +62,7 @@ eval l@(EVar "lambda" :.: _args :.: _body :.: ENil) =
 eval (EVar "lambda" :.: _) =
   throwE $ EvalExc "lambda: bad syntax, expected: (lambda (<var>...) <expr>)"
 eval (function :.: argList) = do
+  -- TODO should this be lazy? Should this be eager?
   fun <- eval function
   case fun of
     EHaskellFun f -> f argList
