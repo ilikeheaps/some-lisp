@@ -61,6 +61,9 @@ type Env = [(Var, Expr)]
 type LispM e a = ExceptT e (Reader Env) a
 type EvalM a = LispM EvalError a
 
+lispError :: Monad m => String -> ExceptT EvalError m a
+lispError msg = throwE $ EvalExc msg
+
 -- this will map over any list, also kinda-list (e.g. (1 2 . 3) )
 mapConsM :: Monad m => (Expr -> m Expr) -> Expr -> m Expr
 mapConsM f (e1 :.: e2) = do
