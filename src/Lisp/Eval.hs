@@ -71,7 +71,10 @@ eval (function :.: argList) = do
   -- TODO should this be lazy? Should this be eager?
   fun <- eval function
   case fun of
+    -- HaskellFun might be lazy depending on =f=
+    -- (it can be arbitrary action -- including special forms)
     EHaskellFun f -> f argList
+    -- lambda is always strict
     (EVar "lambda" :.: argNames :.: expr :.: ENil) -> do
       argVals <- evalList argList
       ExceptT . (local $ bindVars argNames argVals) . runExceptT
