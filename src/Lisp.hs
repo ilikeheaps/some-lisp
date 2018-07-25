@@ -16,8 +16,15 @@ defaultEnv = bindPureFun "+" (\(EInt a :.: EInt b :.: ENil) ->  EInt $ a + b)
                         when (b == 0) $ lispError "div by 0"
                         pure $ EInt $ a `div` b
                       _ -> lispError "Wrong arguments for div")
-             -- TODO this =if= is strict!
-             . bindPureFun "if" (\(EBool p :.: v1 :.: v2 :.: ENil) ->  if p then v1 else v2)
+             . bindExceptForm "if"
+               (\case (ebool :.: etrue :.: efalse :.: ENil) -> do
+                        mb <- eval ebool
+                        case mb of
+                          EBool b -> if b
+                                     then eval etrue
+                                     else eval efalse
+                          _       -> lispError "wrong arguments to =if="
+                      _ -> lispError $ "wrong syntax: if")
              . bindPureFun "<" (\(EInt a :.: EInt b :.: ENil) ->  EBool $ a < b)
              . bindPureFun "=" (\(EInt a :.: EInt b :.: ENil) ->  EBool $ a == b)
              . bindPureFun "<=" (\(EInt a :.: EInt b :.: ENil) ->  EBool $ a <= b)
