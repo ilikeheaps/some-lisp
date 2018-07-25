@@ -21,7 +21,9 @@ defaultEnv = bindPureFun "+" (\(EInt a :.: EInt b :.: ENil) ->  EInt $ a + b)
              . bindPureFun "=" (\(EInt a :.: EInt b :.: ENil) ->  EBool $ a == b)
              . bindPureFun "<=" (\(EInt a :.: EInt b :.: ENil) ->  EBool $ a <= b)
              . bindPureFun "=:=" (\(e1 :.: e2 :.: ENil) -> EBool $ e1 == e2)
+             -- could we replace =quote= with =.=?
              . bindPureForm "quote" (\(e :.: ENil) -> e)
+             . bindPureFun "." (\(e1 :.: e2 :.: ENil) -> e1 :.: e2)
              $ emptyEnv
 
 main :: IO ()
