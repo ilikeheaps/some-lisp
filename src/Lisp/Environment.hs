@@ -15,11 +15,6 @@ bindName s = bindVar s
 bindFun :: String -> (Expr -> EvalM Expr) -> Env -> Env
 bindFun name body = bindName name (EHaskellFun body)
 
-withEvalArgs :: (Expr -> EvalM a) -> Expr -> EvalM a
-withEvalArgs action args = do
-  values <- evalList args
-  action values
-
 bindPureFun :: String -> (Expr -> Expr) -> Env -> Env
 bindPureFun name fun =
   bindFun name (withEvalArgs (pure . fun))

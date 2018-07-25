@@ -1,7 +1,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Lisp.Eval ( eval
-                 , evalList) where
+                 , evalList
+                 , withEvalArgs) where
 
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Except
@@ -54,6 +55,11 @@ mapFreeVarsM f e = go [] e
     go _ b@(EBool _) = pure b
     go _ h@(EHaskellFun _) = pure h
     go _ ENil = pure ENil
+
+withEvalArgs :: (Expr -> EvalM a) -> Expr -> EvalM a
+withEvalArgs action args = do
+  values <- evalList args
+  action values
 
 eval :: Expr -> EvalM Expr
 -- TODO runtime check if lambda syntax is correct
