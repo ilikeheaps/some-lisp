@@ -4,6 +4,8 @@ module Lisp.Environment (bindPureFun,
                          bindFailFun,
                          bindExceptFun,
                          bindPureForm,
+                         bindFailForm,
+                         bindExceptForm,
                          emptyEnv) where
 
 import MonadStuff
@@ -35,3 +37,10 @@ bindPureForm name fun =
 
 emptyEnv :: Env
 emptyEnv = []
+bindFailForm :: String -> String -> (Expr -> Maybe Expr) -> Env -> Env
+bindFailForm name errMsg fun =
+  bindFun name (maybeFail (EvalExc errMsg) . fun)
+
+bindExceptForm :: String -> (Expr -> EvalM Expr) -> Env -> Env
+bindExceptForm name fun =
+  bindFun name fun
