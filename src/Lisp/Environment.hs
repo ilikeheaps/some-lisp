@@ -1,8 +1,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE Rank2Types #-}
-module Lisp.Environment where
-
-import Control.Monad.Trans.Except
+module Lisp.Environment (bindPureFun,
+                         bindFailFun,
+                         bindExceptFun,
+                         bindPureForm,
+                         emptyEnv) where
 
 import MonadStuff
 import Lisp.Eval
@@ -23,7 +25,7 @@ bindFailFun :: String -> String -> (Expr -> Maybe Expr) -> Env -> Env
 bindFailFun name errMsg fun =
   bindFun name (withEvalArgs (maybeFail (EvalExc errMsg) . fun))
 
-bindExceptFun :: String -> (forall m . Monad m => Expr -> ExceptT EvalError m Expr) -> Env -> Env
+bindExceptFun :: String -> (Expr -> EvalM Expr) -> Env -> Env
 bindExceptFun name fun =
   bindFun name (withEvalArgs fun)
 
