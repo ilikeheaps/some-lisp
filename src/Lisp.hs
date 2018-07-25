@@ -5,6 +5,7 @@ import Control.Monad (when)
 import Lisp.Types
 import Lisp.Environment
 import Lisp.Repl
+import Lisp.Eval
 
 defaultEnv :: Env
 defaultEnv = bindPureFun "+" (\(EInt a :.: EInt b :.: ENil) ->  EInt $ a + b)
@@ -24,7 +25,17 @@ defaultEnv = bindPureFun "+" (\(EInt a :.: EInt b :.: ENil) ->  EInt $ a + b)
              -- could we replace =quote= with =.=?
              . bindPureForm "quote" (\(e :.: ENil) -> e)
              . bindPureFun "." (\(e1 :.: e2 :.: ENil) -> e1 :.: e2)
+{- TODO how to best express this?
+(eval expr 0) = expr
+(eval expr n) = (eval (eval expr) (n-1))
+-}
+             . bindExceptForm "eval"
+               (\case (expr :.: EInt n :.: ENil) -> iterateM eval (pure expr) !! n
+                      _ -> lispError "nope")
              $ emptyEnv
+
+iterateM :: Monad m => (a -> m a) -> m a -> [m a]
+iterateM f x = [x] ++ iterateM f (x >>= f)
 
 main :: IO ()
 main =
