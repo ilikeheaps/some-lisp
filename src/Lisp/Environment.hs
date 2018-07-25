@@ -35,8 +35,6 @@ bindPureForm :: String -> (Expr -> Expr) -> Env -> Env
 bindPureForm name fun =
   bindFun name (pure . fun)
 
-emptyEnv :: Env
-emptyEnv = []
 bindFailForm :: String -> String -> (Expr -> Maybe Expr) -> Env -> Env
 bindFailForm name errMsg fun =
   bindFun name (maybeFail (EvalExc errMsg) . fun)

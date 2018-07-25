@@ -12,3 +12,5 @@ bindVars (EVar var :.: restVars) (value :.: restValues) =
 bindVars ENil ENil = id
 bindVars _ _ = error "bindVars got wrong stuff :/"
 
+emptyEnv :: Env
+emptyEnv = []
