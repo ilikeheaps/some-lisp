@@ -1,0 +1,2 @@
+(((lambda (x) (lambda (t) (+ x t))) 1) 2)
+exit

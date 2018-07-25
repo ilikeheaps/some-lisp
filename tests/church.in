@@ -1,0 +1,6 @@
+(((lambda (c) (lambda (f a) (c (f a) a))) (lambda (f a) a)) (lambda (n) (+ 1 n)) 0)
+(((lambda (c) (lambda (f a) (c f (f a)))) (lambda (f a) a)) (lambda (n) (+ 1 n)) 0)
+(((lambda (c) (lambda (f a) (c f (f a)))) ((lambda (c) (lambda (f a) (c f (f a)))) (lambda (f a) a))) (lambda (n) (+ 1 n)) 0)
+(((lambda (c) (lambda (f a) (c f (f a)))) ((lambda (c) (lambda (f a) (c f (f a)))) (lambda (f a) a))) (lambda (n) (+ 1 n)) 0)
+((lambda (zero) ((lambda (succ) ((succ (succ zero)) (lambda (n) (+ 1 n)) 0)) (lambda (c) (lambda (f a) (c f (f a)))))) (lambda (f a) a))
+exit
