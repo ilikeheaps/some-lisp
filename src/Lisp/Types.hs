@@ -41,10 +41,12 @@ instance Show LispError where
   show (Runtime (EvalExc s)) = "Runtime error: "++s
   show (Parsing pe) = "Parse error: "++show pe
 
+-- handles also kinda-lists
+-- TODO make parser parse "." properly (so it would be close to inverse function)
 showOpenList :: Expr -> String
 showOpenList (a :.: ENil) = show a ++ ")"
 showOpenList (a :.: as) = show a ++" "++ showOpenList as
-showOpenList _ = error "showOpenList got wrong stuff :/"
+showOpenList a = ". " ++ show a ++ ")"
 
 instance Show Expr where
   show ls@(_ :.: _) = "(" ++ showOpenList ls
