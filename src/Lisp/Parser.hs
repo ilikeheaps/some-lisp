@@ -1,8 +1,11 @@
-module Lisp.Parser where
+module Lisp.Parser ( parseExpr
+                   , tryParse
+                   ) where
 
-import Lisp.Types
 import Text.Parsec hiding (spaces)
 import Text.ParserCombinators.Parsec hiding (spaces)
+
+import Lisp.Types
 
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~."
