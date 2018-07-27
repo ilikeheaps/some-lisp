@@ -2,6 +2,8 @@
 
 module Lisp.Repl where
 
+import Data.Maybe (isJust)
+import Control.Monad (when)
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Maybe
@@ -47,23 +49,26 @@ parseRepl = do
   _ <- many space
   pure cmd
 
-foo :: (MonadIO m, Show e) => (a -> m ()) -> Either e a -> m ()
-foo = either (\err -> liftIO . putStrLn $ show err)
+printLeft :: (MonadIO m, Show e) => (a -> m ()) -> Either e a -> m ()
+printLeft = either (\err -> liftIO . putStrLn $ show err)
+
+replEval :: Expr -> MaybeT (ReaderT Env IO) ()
+replEval e = do
+  res  <- MaybeT . fmap Just $ readerT . runExceptT $ withExceptT Runtime $ eval e
+  printLeft
+    (\value -> liftIO . putStrLn $ show value)
+    (res)
 
 -- Reader a = ReaderT Identity a
 repl :: (ReaderT Env IO) ()
 repl = do
   str <- liftIO getLine
-  foo
+  maybeRun <- runMaybeT $ printLeft
     (\case
-        Exit -> error "actually not an error" -- TODO
         RunFile path -> return () -- TODO
-        Eval expr -> do
-          res <- readerT . runExceptT $ withExceptT Runtime $ eval expr
-          foo
-            (\value -> liftIO . putStrLn $ show value)
-            (res))
+        Exit -> MaybeT . pure $ Nothing
+        Eval expr -> replEval expr)
     (parse parseRepl "repl" str)
-  repl
+  when (isJust maybeRun) repl
 
-  
+
