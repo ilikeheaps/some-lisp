@@ -72,3 +72,21 @@ repl = do
   when (isJust maybeRun) repl
 
 
+{- would this perform worse? (difference in MaybeT usage)
+-- Reader a = ReaderT Identity a
+repl' :: (ReaderT Env IO) ()
+repl' = do
+  str <- liftIO getLine
+  fmap (const ()) $ runMaybeT $ do
+    printLeft
+      (\case
+          Exit -> MaybeT . pure $ Nothing
+          RunFile path -> pure ()
+          Eval expr -> do
+            res  <- MaybeT . fmap Just $ readerT . runExceptT $ withExceptT Runtime $ eval expr
+            printLeft
+              (\value -> liftIO . putStrLn $ show value)
+              (res))
+      (parse parseRepl "repl" str)
+    MaybeT . fmap Just $ repl'
+-}
