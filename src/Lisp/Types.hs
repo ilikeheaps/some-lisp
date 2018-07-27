@@ -55,7 +55,8 @@ instance Show Expr where
   show (EInt n) = show n
   -- TODO might need changes
   show (ENil) = "()"
-  show (EBool b) = show b
+  show (EBool True) = "true"
+  show (EBool False) = "false"
   show (EHaskellFun _) = "<haskell function>"
 
 type Env = [(Var, Expr)]
