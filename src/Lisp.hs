@@ -39,6 +39,8 @@ defaultEnv = bindPureFun "+" (\(EInt a :.: EInt b :.: ENil) ->  EInt $ a + b)
              . bindExceptForm "eval"
                (\case (expr :.: EInt n :.: ENil) -> iterateM eval (pure expr) !! n
                       _ -> lispError "nope")
+             . bindName "false" (EBool False)
+             . bindName "true" (EBool True)
              $ emptyEnv
 
 iterateM :: Monad m => (a -> m a) -> m a -> [m a]

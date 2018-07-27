@@ -45,7 +45,7 @@ parseList = do
   return $ foldr (:.:) ENil x
 
 parseExpr :: Parser Expr
-parseExpr = parseNumber <|> parseString <|> parseBool <|> parseVariable <|> parseList
+parseExpr = parseNumber <|> parseString <|> parseVariable <|> parseList
 
 skipTrailing :: Parser b -> Parser a -> Parser a
 skipTrailing s p = do
