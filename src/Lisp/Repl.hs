@@ -65,8 +65,13 @@ repl = do
   str <- liftIO getLine
   maybeRun <- runMaybeT $ printLeft
     (\case
-        RunFile path -> return () -- TODO
         Exit -> MaybeT . pure $ Nothing
+        RunFile path -> do
+            fileStr <- liftIO $ readFile path
+            printLeft
+              (replEval)
+              (parse parseExpr path fileStr)
+            pure ()
         Eval expr -> replEval expr)
     (parse parseRepl "repl" str)
   when (isJust maybeRun) repl
