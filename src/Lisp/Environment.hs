@@ -1,6 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE Rank2Types #-}
-module Lisp.Environment (bindPureFun,
+module Lisp.Environment (bindName,
+                         bindPureFun,
                          bindFailFun,
                          bindExceptFun,
                          bindPureForm,
