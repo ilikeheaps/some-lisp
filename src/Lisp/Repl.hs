@@ -33,7 +33,8 @@ parseFile :: Parser Command
 parseFile = do
   _ <- string "runFile"
   _ <- many space
-  str <- many letter -- TODO allow more symbols (can't really enter many paths right now)
+  -- TODO allow more symbols (can't really enter many paths right now)
+  str <- many (letter <|> digit <|> char '/' <|> char '.')
   pure $ RunFile str
 
 parseSpecial :: Parser Command
